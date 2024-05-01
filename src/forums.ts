@@ -1,29 +1,68 @@
 import { Router } from "express";
 import { db } from "./db";
+import { send } from "./response";
+import { z } from "zod";
+import { catchErrors } from "./errors";
 
 const router = Router();
 
-/*
-GET  /forums/
-POST /forums/
-GET  /forums/:id
-PUT  /forums/:id
-DELETE /forums/:id
-*/
-
-router.get("/", async (req, res) => {
-  try {
-    const forums = await db.forum.findMany({
-      orderBy: { createdAt: "asc" },
-      select: {
-        name: true,
-        forumId: true,
-      }
-    });
-    res.status(200).json({ forums });
-  } catch (e) {
-    res.status(500).json({ error: "Internal Error" });
-  }
+const idParamSchema = z.object({
+  id: z.coerce.number(),
 });
 
-export default router
+const forumBodySchema = z.object({
+  name: z.string().min(5).max(200),
+});
+
+router.get(
+  "/",
+  catchErrors(async (_, res) => {
+    const forums = await db.forum.findMany({
+      orderBy: { createdAt: "asc" },
+      select: { name: true, forumId: true },
+    });
+    send(res).ok(forums);
+  })
+);
+
+router.get(
+  "/:id",
+  catchErrors(async (req, res) => {
+    const { id: forumId } = idParamSchema.parse(req.params);
+    const forum = await db.forum.findUniqueOrThrow({ where: { forumId } });
+    send(res).ok(forum);
+  })
+);
+
+router.post(
+  "/",
+  catchErrors(async (req, res) => {
+    const data = forumBodySchema.parse(req.body);
+    const forum = await db.forum.create({ data });
+    send(res).createOk(forum);
+  })
+);
+
+router.put(
+  "/:id",
+  catchErrors(async (req, res) => {
+    const { id: forumId } = idParamSchema.parse(req.params);
+    const forumData = forumBodySchema.parse(req.body);
+    const updatedForum = await db.forum.update({
+      where: { forumId },
+      data: forumData,
+    });
+    send(res).ok(updatedForum);
+  })
+);
+
+router.delete(
+  "/:id",
+  catchErrors(async (req, res) => {
+    const { id: forumId } = idParamSchema.parse(req.params);
+    const deletedForum = await db.forum.delete({ where: { forumId } });
+    send(res).ok(deletedForum);
+  })
+);
+
+export default router;
