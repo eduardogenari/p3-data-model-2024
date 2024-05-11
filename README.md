@@ -33,9 +33,9 @@ sudo docker compose up -d
 
 6. after starting the docker containers, access the following URLs in a web browser to check if the application is running and data is being served correctly:
 
-[link](http://localhost:8888/products) http://localhost:8888/products
-[link](http://localhost:8888/users) http://localhost:8888/users
-[link](http://localhost:8888/orders) http://localhost:8888/orders
+[link](http://localhost:8888/products) http://localhost:8888/products  
+[link](http://localhost:8888/users) http://localhost:8888/users  
+[link](http://localhost:8888/orders) http://localhost:8888/orders  
 
 7. optional, check active docker image "p3-data-model-2024-api":
 
